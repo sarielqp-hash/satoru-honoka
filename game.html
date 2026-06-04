@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>五条悟 · 朝夕相伴</title>
+<style>
+:root {
+--bg: #faf8f5; --card: #ffffff; --text: #3d3226; --text2: #8b7e6a;
+--accent: #7eb8c9; --love: #8ec8e0; --gold: #c9a43e; --energy: #b5d0e0;
+--hunger: #e0b0a0; --mood-color: #a8c97e;
+--font: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+background: #1a1410; font-family: var(--font); color: var(--text);
+display: flex; justify-content: center; align-items: center; min-height: 100vh;
+padding: 8px; user-select: none; -webkit-user-select: none;
+}
+.game-container {
+width: 100%; max-width: 460px; height: 96vh; max-height: 900px;
+background: var(--bg); border-radius: 24px; display: flex; flex-direction: column;
+box-shadow: 0 30px 60px rgba(0,0,0,0.6); overflow: hidden; position: relative;
+margin: 0 auto;
+}
+.top-bar {
+display: flex; justify-content: space-between; align-items: center;
+padding: 14px 18px; background: rgba(255,255,255,0.95);
+border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;
+font-size: 14px; font-weight: 700; backdrop-filter: blur(10px); z-index: 20;
+}
+.stats-row { display: flex; gap: 4px; padding: 8px 10px; flex-shrink: 0; background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); }
+.stat-item { flex: 1; background: #fff; border-radius: 10px; padding: 10px 2px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); font-size: 10px; }
+.stat-icon { font-size: 18px; } .stat-val { font-weight: 700; font-size: 15px; } .stat-label { font-size: 8px; color: var(--text2); }
+.scene-area {
+width: 100%; height: 90px; flex-shrink: 0;
+display: flex; flex-direction: column; align-items: center; justify-content: center;
+position: relative; overflow: hidden; transition: background 0.5s ease;
+}
+.scene-emoji { font-size: 40px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2)); z-index: 2; }
+.scene-label { font-size: 11px; color: #fff; background: rgba(0,0,0,0.35); padding: 4px 10px; border-radius: 6px; z-index: 2; margin-top: 4px; }
+.reaction-area {
+text-align: center; padding: 8px 12px; font-size: 13px; color: var(--accent); font-weight: 600;
+background: rgba(255,255,255,0.9); min-height: 28px; display: flex; align-items: center; justify-content: center;
+flex-shrink: 0; border-top: 1px solid rgba(0,0,0,0.05);
+}
+.content-area { flex: 1; padding: 10px 14px; overflow-y: auto; font-size: 12px; line-height: 1.6; background: rgba(255,255,255,0.4); -webkit-overflow-scrolling: touch; }
+.choices-area { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 5px; background: rgba(255,255,255,0.95); border-top: 1px solid rgba(0,0,0,0.05); flex-shrink: 0; backdrop-filter: blur(10px); max-height: 35vh; overflow-y: auto; }
+.btn { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.btn:active { background: var(--accent); color: #fff; transform: scale(0.97); }
+.shop-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.shop-tab { padding: 8px 14px; border-radius: 18px; font-size: 12px; cursor: pointer; background: #f0e8d8; color: var(--text2); border: none; font-weight: 600; transition: all 0.2s; }
+.shop-tab.active { background: var(--accent); color: #fff; }
+.shop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.shop-card { background: #fff; border-radius: 10px; padding: 12px 3px; text-align: center; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.shop-card:active { transform: scale(0.94); background: #f5ece0; }
+.shop-card .s-emoji { font-size: 28px; } .shop-card .s-name { font-weight: 600; font-size: 10px; } .shop-card .s-price { color: var(--gold); font-weight: 700; font-size: 11px; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity 0.25s; }
+.modal-overlay.show { pointer-events: auto; opacity: 1; }
+.modal-box { background: #fff; border-radius: 18px; padding: 22px; width: 88%; max-width: 360px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.4); }
+.modal-box h3 { font-size: 16px; color: var(--accent); margin-bottom: 8px; }
+.modal-box p { font-size: 13px; color: var(--text2); margin-bottom: 12px; line-height: 1.6; white-space: pre-line; }
+.modal-box button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-size: 14px; margin-top: 6px; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #3d3226; color: #fff; padding: 8px 20px; border-radius: 12px; font-size: 12px; z-index: 300; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+.toast.show { opacity: 1; }
+.bottom-nav { display: flex; justify-content: space-around; padding: 10px 8px; flex-shrink: 0; background: rgba(255,255,255,0.95); border-top: 1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px); z-index: 30; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); cursor: pointer; padding: 8px 12px; border-radius: 10px; transition: all 0.15s; background: transparent; border: none; text-decoration: none; }
+.nav-item:active { background: rgba(0,0,0,0.05); } .nav-item .n-icon { font-size: 26px; } .nav-item.active { color: var(--accent); font-weight: 700; }
+.rules-btn { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 14px; cursor: pointer; z-index: 50; background: rgba(255,255,255,0.9); border-radius: 20px; padding: 8px 16px; display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text); }
+</style>
+</head>
+<body>
+<div class="game-container" id="app">
+<div class="top-bar"><span id="dayLabel">📅 第1天 周一</span><span>💰<b id="moneyVal">150</b></span><span>⏳行动力:<b id="actionVal">3</b>/3</span></div>
+<div class="stats-row">
+<div class="stat-item"><div class="stat-icon">💕</div><div class="stat-val" id="loveVal" style="color:var(--love);">50</div><div class="stat-label">好感度</div></div>
+<div class="stat-item"><div class="stat-icon">🍖</div><div class="stat-val" id="hungerVal" style="color:var(--hunger);">70</div><div class="stat-label">饱腹度</div></div>
+<div class="stat-item"><div class="stat-icon">⚡</div><div class="stat-val" id="energyVal" style="color:var(--energy);">75</div><div class="stat-label">精力</div></div>
+<div class="stat-item"><div class="stat-icon">💭</div><div class="stat-val" id="moodVal" style="color:var(--mood-color);">65</div><div class="stat-label">心情</div></div>
+<div class="stat-item"><div class="stat-icon">🧹</div><div class="stat-val" id="cleanVal" style="color:#7eb8c9;">80</div><div class="stat-label">整洁度</div></div>
+</div>
+<div class="scene-area" id="sceneArea" style="background:linear-gradient(180deg,#f5efe5,#ebe0d0);"><div class="scene-emoji" id="sceneEmoji">🏠</div><div class="scene-label" id="sceneLabel">家里·客厅</div></div>
+<div class="reaction-area" id="reactionArea">五条悟靠在沙发上，手里拿着一盒草莓大福。</div>
+<div class="content-area" id="contentMain"></div>
+<div class="choices-area" id="choicesMain"></div>
+<div class="bottom-nav" id="bottomNav">
+<a href="index.html" class="nav-item"><span class="n-icon">🏠</span>主页</a>
+<a href="game.html" class="nav-item active"><span class="n-icon">🎮</span>游戏</a>
+<a href="novels.html" class="nav-item"><span class="n-icon">📖</span>小说</a>
+<a href="guestbook.html" class="nav-item"><span class="n-icon">💬</span>留言</a>
+</div>
+<div class="rules-btn" id="rulesBtn" onclick="showRules()">❓ 规则</div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal-box" id="modalBox"></div></div>
+
+<script>
+const SK = 'gojo_v1_fix';
+function save() { try { localStorage.setItem(SK, JSON.stringify(G)); } catch(e) {} }
+function load() { try { let d = JSON.parse(localStorage.getItem(SK)); if(d) { Object.assign(G, d); return true; } } catch(e) {} return false; }
+
+const G = { day: 1, money: 150, actions: 3, love: 50, hunger: 70, energy: 75, mood: 65, cleanliness: 80, phase: 'morning', weekDay: 1, outfit: 'default', inventory: [], zyHome: true, zyAtSchool: false, ownedOutfits: ['default'], lightOn: true, gifts: [], flags: {}, usedEvents: [], eventTriggeredToday: false, dailyLog: [] };
+const WN = ['周一','周二','周三','周四','周五','周六','周日'];
+const $ = id => document.getElementById(id);
+
+function showReaction(msg) { $('#reactionArea').textContent = msg; setTimeout(() => { if($('#reactionArea').textContent === msg) $('#reactionArea').textContent = ''; }, 4000); }
+function checkGameOver() {
+if (G.hunger <= 0) { showModal('游戏结束', '五条悟的饱腹度降到了0。', [{ text: '重新开始', cb: () => { localStorage.removeItem(SK); location.reload(); } }]); return true; }
+if (G.energy <= 0) { showModal('游戏结束', '五条悟的精力降到了0。', [{ text: '重新开始', cb: () => { localStorage.removeItem(SK); location.reload(); } }]); return true; }
+if (G.cleanliness <= 0) { showModal('游戏结束', '五条悟的整洁度降到了0。', [{ text: '重新开始', cb: () => { localStorage.removeItem(SK); location.reload(); } }]); return true; }
+if (G.mood <= 0) { showModal('游戏结束', '五条悟的心情降到了0。', [{ text: '重新开始', cb: () => { localStorage.removeItem(SK); location.reload(); } }]); return true; }
+return false;
+}
+function showRules() {
+let rules = '📋 游戏规则\n\n🏠 五条悟养成模拟游戏。\n🕐 每天分上午/下午/傍晚/夜晚。\n⏳ 行动力每天3点，出门/做饭/约会等消耗。\n⚠️ 任何数值降到0游戏直接结束！\n🎒 五条悟出门消耗精力。\n🛒 商城购买食物/衣物/礼物。\n🍳 食材需烹饪后才能吃。\n💬 睡前可聊天/亲密互动。\n📅 30天后根据好感度判定结局。';
+showModal('📋 游戏规则', rules, [{ text: '知道了', cb: () => {} }]);
+}
+function showStatChange(title, changes) {
+let body = '';
+if (changes.love) body += '💕好感度 ' + (changes.love > 0 ? '+' : '') + changes.love + '\n';
+if (changes.mood) body += '💭心情 ' + (changes.mood > 0 ? '+' : '') + changes.mood + '\n';
+if (changes.energy) body += '⚡精力 ' + (changes.energy > 0 ? '+' : '') + changes.energy + '\n';
+if (changes.hunger) body += '🍖饱腹度 ' + (changes.hunger > 0 ? '+' : '') + changes.hunger + '\n';
+if (changes.cleanliness) body += '🧹整洁度 ' + (changes.cleanliness > 0 ? '+' : '') + changes.cleanliness + '\n';
+if (changes.money) body += '💰金币 ' + (changes.money > 0 ? '+' : '') + changes.money + '\n';
+if (body) showModal(title, body, [{ text: '确定', cb: () => {} }]);
+}
+
+function updateUI() { $('#dayLabel').textContent = '📅 第' + G.day + '天 ' + WN[G.weekDay]; $('#moneyVal').textContent = G.money; $('#actionVal').textContent = G.actions; $('#loveVal').textContent = Math.round(G.love); $('#hungerVal').textContent = Math.round(G.hunger); $('#energyVal').textContent = Math.round(G.energy); $('#moodVal').textContent = Math.round(G.mood); $('#cleanVal').textContent = Math.round(G.cleanliness); }
+function toast(msg) { let t = $('#toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+function showModal(title, body, buttons) { let m = $('#modalOverlay'), b = $('#modalBox'); b.innerHTML = '<h3>' + title + '</h3><p>' + body + '</p>'; if (buttons) buttons.forEach(btn => { let el = document.createElement('button'); el.textContent = btn.text; el.addEventListener('click', () => { m.classList.remove('show'); if (btn.cb) btn.cb(); }); b.appendChild(el); }); else { let cb = document.createElement('button'); cb.textContent = '关闭'; cb.addEventListener('click', () => m.classList.remove('show')); b.appendChild(cb); } m.classList.add('show'); }
+function spendAction() { if (G.actions > 0) { G.actions--; updateUI(); return true; } toast('行动力用完了'); return false; }
+function addContent(html) { let el = document.createElement('p'); el.innerHTML = html; $('#contentMain').appendChild(el); $('#contentMain').scrollTop = $('#contentMain').scrollHeight; }
+function setChoices(arr) { $('#choicesMain').innerHTML = ''; arr.forEach(c => { let btn = document.createElement('div'); btn.className = 'btn' + (c.disabled ? ' disabled' : ''); btn.innerHTML = '<span>' + c.text + '</span><span style="font-size:10px;opacity:0.7;">' + (c.cost || '') + '</span>'; if (!c.disabled) btn.addEventListener('click', c.action); $('#choicesMain').appendChild(btn); }); }
+
+var currentScreen = 'main';
+var screenData = {};
+function createScreen(id, title, bg, emoji, label) { screenData[id] = { title, bg, emoji, label }; }
+createScreen('bedroom', '🛏️ 卧室', 'linear-gradient(180deg,#1a1a2e,#0d0d1a)', '🛏️', '卧室');
+createScreen('dining', '🍽️ 餐厅', 'linear-gradient(180deg,#fff8f0,#f5e6d3)', '🍽️', '餐厅');
+createScreen('bath', '🚿 浴室', 'linear-gradient(180deg,#e0f0ff,#c0ddf8)', '🚿', '浴室');
+createScreen('wardrobe', '👔 衣帽间', 'linear-gradient(180deg,#f5f0f0,#e8dcdc)', '👔', '衣帽间');
+createScreen('shop', '🛒 商城', 'linear-gradient(180deg,#f8f8f0,#f0f0e0)', '🛒', '商城');
+createScreen('city', '🗺️ 出门', 'linear-gradient(180deg,#e0f0e0,#c8e0c8)', '🗺️', '城市地图');
+
+function switchScreen(id) {
+currentScreen = id; 
+if (id === 'shop') renderShop(); else if (id === 'dining') renderDining(); else if (id === 'bath') renderBath(); else if (id === 'bedroom') renderBedroom(); else if (id === 'wardrobe') renderWardrobe(); else if (id === 'city') renderCity(); else if (id === 'main') { updateUI(); showPhase(); }
+$('#sceneArea').style.background = screenData[id] ? screenData[id].bg : 'linear-gradient(180deg,#f5efe5,#ebe0d0)';
+$('#sceneEmoji').textContent = screenData[id] ? screenData[id].emoji : '🏠';
+$('#sceneLabel').textContent = screenData[id] ? screenData[id].label : '家里·客厅';
+$('#contentMain').innerHTML = ''; $('#choicesMain').innerHTML = ''; $('#reactionArea').textContent = '';
+$('#rulesBtn').style.display = (id === 'main') ? 'flex' : 'none';
+}
+
+var shopCats = [
+{ cat: '🍞甜品区', items: [{id:'strawberry_daifuku',n:'草莓大福',e:'🍓',p:12,h:18},{id:'matcha_cake',n:'抹茶千层',e:'🍰',p:28,h:22},{id:'chiffon',n:'云朵戚风',e:'🥧',p:16,h:20},{id:'pudding',n:'焦糖布丁',e:'🍮',p:10,h:15},{id:'montblanc',n:'蒙布朗栗子',e:'🌰',p:24,h:24},{id:'macaron',n:'马卡龙',e:'🍪',p:18,h:16},{id:'mochi',n:'酱油团子',e:'🍡',p:8,h:14},{id:'cheesecake',n:'巴斯克芝士',e:'🧀',p:22,h:22},{id:'tiramisu',n:'提拉米苏',e:'☕',p:20,h:20},{id:'icecream',n:'香草冰淇淋',e:'🍨',p:14,h:12},{id:'parfait',n:'水果芭菲',e:'🥭',p:26,h:26},{id:'donut',n:'糖霜甜甜圈',e:'🍩',p:10,h:16},{id:'cookie',n:'曲奇饼干',e:'🍪',p:6,h:10},{id:'waffle',n:'华夫饼',e:'🧇',p:15,h:18},{id:'crepe',n:'可丽饼',e:'🥞',p:16,h:18}] },
+{ cat: '🥩食材区', items: [{id:'wagyu_raw',n:'和牛片',e:'🥩',p:25,ing:1},{id:'egg_raw',n:'无菌蛋',e:'🥚',p:5,ing:1},{id:'milk_raw',n:'鲜牛奶',e:'🥛',p:8,ing:1},{id:'rice_raw',n:'越光米',e:'🍚',p:12,ing:1},{id:'cheese_raw',n:'马苏里拉',e:'🧀',p:10,ing:1},{id:'butter_raw',n:'无盐黄油',e:'🧈',p:8,ing:1},{id:'flour_raw',n:'低筋面粉',e:'🌾',p:6,ing:1},{id:'sugar_raw',n:'细砂糖',e:'🍬',p:4,ing:1},{id:'chocolate_raw',n:'黑巧克力',e:'🍫',p:12,ing:1},{id:'matcha_raw',n:'抹茶粉',e:'🍵',p:15,ing:1},{id:'cream_raw',n:'淡奶油',e:'🥛',p:14,ing:1},{id:'strawberry_raw',n:'新鲜草莓',e:'🍓',p:10,ing:1},{id:'mango_raw',n:'芒果',e:'🥭',p:12,ing:1},{id:'peach_raw',n:'水蜜桃',e:'🍑',p:10,ing:1},{id:'honey_raw',n:'进口蜂蜜',e:'🍯',p:18,ing:1}] },
+{ cat: '🍎水果区', items: [{id:'strawberry',n:'奶油草莓',e:'🍓',p:10,h:8},{id:'apple',n:'红富士',e:'🍎',p:6,h:10},{id:'banana',n:'香蕉',e:'🍌',p:5,h:9},{id:'orange',n:'柑橘',e:'🍊',p:6,h:8},{id:'grape',n:'晴王葡萄',e:'🍇',p:15,h:10},{id:'watermelon',n:'西瓜',e:'🍉',p:15,h:14},{id:'peach',n:'水蜜桃',e:'🍑',p:12,h:9},{id:'cherry',n:'樱桃',e:'🍒',p:20,h:8},{id:'mango',n:'芒果',e:'🥭',p:12,h:10},{id:'pineapple',n:'凤梨',e:'🍍',p:14,h:12},{id:'kiwi',n:'奇异果',e:'🥝',p:8,h:7},{id:'pear',n:'雪梨',e:'🍐',p:6,h:9},{id:'lemon',n:'柠檬',e:'🍋',p:4,h:4},{id:'blueberry',n:'蓝莓',e:'🫐',p:18,h:8},{id:'coconut',n:'椰子',e:'🥥',p:15,h:10}] },
+{ cat: '🥤饮品区', items: [{id:'milk',n:'热牛奶',e:'🥛',p:6,h:12},{id:'matcha_latte',n:'抹茶拿铁',e:'🍵',p:18,h:8},{id:'lemonade',n:'蜂蜜柠檬水',e:'🍋',p:10,h:6},{id:'milkshake',n:'草莓奶昔',e:'🥤',p:18,h:14},{id:'bubbletea',n:'珍珠奶茶',e:'🧋',p:16,h:12},{id:'coffee',n:'焦糖玛奇朵',e:'☕',p:16,h:6},{id:'hotchoco',n:'热可可',e:'☕',p:12,h:10},{id:'juice',n:'鲜榨橙汁',e:'🧃',p:12,h:8},{id:'soda',n:'弹珠汽水',e:'🥤',p:8,h:4},{id:'water',n:'矿泉水',e:'💧',p:3,h:3},{id:'soymilk',n:'豆浆',e:'🥛',p:5,h:10},{id:'yogurt',n:'酸奶',e:'🥛',p:8,h:12},{id:'coconut_drink',n:'椰子水',e:'🥥',p:12,h:6},{id:'smoothie',n:'芒果冰沙',e:'🥭',p:18,h:14},{id:'flavored_tea',n:'蜜桃乌龙',e:'🍑',p:14,h:5}] },
+{ cat: '👔衣物区', items: [{id:'pajama',n:'白针织居家服',e:'👘',p:55,o:'pajama'},{id:'shirt',n:'浅色休闲衬衫',e:'👔',p:60,o:'shirt'},{id:'coat',n:'加厚毛绒外套',e:'🧥',p:80,o:'coat'},{id:'uniform',n:'学院风制服',e:'🎓',p:70,o:'uniform'},{id:'trench',n:'黑色长款风衣',e:'🧥',p:95,o:'trench'},{id:'floral',n:'碎花薄外套',e:'🌸',p:50,o:'floral'},{id:'turtleneck',n:'高领羊绒打底',e:'🧣',p:65,o:'turtleneck'},{id:'sweatsuit',n:'卫衣束脚套装',e:'👕',p:55,o:'sweatsuit'},{id:'cardigan',n:'复古长款开衫',e:'🧥',p:60,o:'cardigan'},{id:'puffer',n:'加绒厚棉服',e:'🧥',p:90,o:'puffer'},{id:'formal',n:'白衬衣+西裤',e:'👔',p:75,o:'formal'},{id:'robe',n:'丝绸宽松睡袍',e:'👘',p:50,o:'robe'},{id:'cargo',n:'工装休闲套装',e:'🧥',p:65,o:'cargo'},{id:'vest',n:'针织马甲叠穿',e:'🦺',p:45,o:'vest'},{id:'xmas',n:'圣诞限定大衣',e:'🎄',p:100,o:'xmas'}] },
+{ cat: '🎁礼物区', items: [{id:'daifuku_box',n:'草莓大福礼盒',e:'🍓',p:45,l:5},{id:'scarf',n:'羊绒围巾',e:'🧣',p:50,l:4},{id:'crystal',n:'蓝瞳水晶摆件',e:'🔮',p:55,l:4},{id:'thermos',n:'保温水杯',e:'🥤',p:30,l:2},{id:'picturebook',n:'趣味绘本',e:'📖',p:28,l:2},{id:'cat_plush',n:'猫咪毛绒玩偶',e:'🐱',p:35,l:3},{id:'honey',n:'进口蜂蜜',e:'🍯',p:40,l:3},{id:'perfume',n:'花果淡香水',e:'🌸',p:60,l:5},{id:'gloves',n:'羊毛手套',e:'🧤',p:25,l:2},{id:'sweet_coupon',n:'甜品兑换券',e:'🎫',p:30,l:3},{id:'silver',n:'银质小挂饰',e:'🔑',p:28,l:2},{id:'handwarmer',n:'便携暖手宝',e:'🔥',p:20,l:1},{id:'succulent',n:'多肉盆栽',e:'🪴',p:18,l:1},{id:'keychain',n:'个性钥匙扣',e:'🔑',p:15,l:1},{id:'cashmere',n:'羊绒披肩',e:'🧣',p:55,l:4}] }
+];
+var currentShopCat = 0;
+function renderShop() { let cat = shopCats[currentShopCat]; let html = '<div class="shop-tabs">'; shopCats.forEach((c, i) => { html += '<button class="shop-tab' + (i === currentShopCat ? ' active' : '') + '" onclick="switchShopCat(' + i + ')">' + c.cat + '</button>'; }); html += '</div><div class="shop-grid">'; cat.items.forEach(item => { html += '<div class="shop-card" onclick="openItemDetail(\'' + item.id + '\',\'' + item.n + '\',\'' + item.e + '\',' + item.p + ',' + (item.h||0) + ',' + (item.l||0) + ',\'' + (item.o||'') + '\',' + (item.ing||0) + ')"><div class="s-emoji">' + item.e + '</div><div class="s-name">' + item.n + '</div><div class="s-price">🪙' + item.p + '</div></div>'; }); html += '</div>'; $('#contentMain').innerHTML = html; }
+function switchShopCat(idx) { currentShopCat = idx; renderShop(); }
+function openItemDetail(id, name, emoji, price, hunger, love, outfit, ing) { let h = '<p><b>' + emoji + ' ' + name + '</b></p>'; if (ing) h += '<p style="color:#e8788a;">需烹饪后才能吃</p>'; if (hunger > 0) h += '<p>🍖饱腹度+' + hunger + '</p>'; if (love > 0) h += '<p>💕好感度+' + love + ' (礼物)</p>'; if (outfit) h += '<p>👔 衣物</p>'; h += '<p style="font-weight:700;color:var(--gold);">价格:🪙' + price + '</p>'; showModal(name, h, [{ text: '购买', cb: () => { buyItem(id); } }, { text: '取消', cb: () => {} }]); }
+function buyItem(id) { let item = null; shopCats.forEach(cat => { cat.items.forEach(i => { if (i.id === id) item = i; }); }); if (!item || G.money < item.p) { toast('金币不足'); return; } G.money -= item.p; if (item.ing) G.inventory.push({ id: item.id, n: item.n, e: item.e, ing: true }); else if (item.h) G.inventory.push({ id: item.id, n: item.n, e: item.e, h: item.h }); if (item.o && G.ownedOutfits.indexOf(item.o) === -1) G.ownedOutfits.push(item.o); if (item.l) G.gifts.push({ id: item.id, n: item.n, e: item.e, l: item.l }); toast('购买了' + item.n); updateUI(); save(); renderShop(); }
+
+function renderInventorySection() { let html = '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08);"><p style="font-weight:600;margin-bottom:6px;font-size:13px;">🎒 物品栏</p><p style="font-size:11px;color:var(--text2);">🎁 礼物 (点击送给五条悟)</p><div class="inv-grid">'; if (G.gifts.length === 0) html += '<p style="font-size:11px;color:var(--text2);">还没有礼物</p>'; G.gifts.forEach((item, idx) => { html += '<div class="inv-card" onclick="openGiftDetail(' + idx + ')"><div class="iv-emoji">' + item.e + '</div><div>' + item.n + '</div><div style="color:var(--love);">💕+' + item.l + '</div></div>'; }); html += '</div></div>'; return html; }
+function openGiftDetail(idx) { if (idx < 0 || idx >= G.gifts.length) return; let item = G.gifts[idx]; showModal(item.n, '<p><b>' + item.e + ' ' + item.n + '</b></p><p>💕好感度+' + item.l + '</p>', [{ text: '送给五条悟', cb: () => { giveGift(idx); } }, { text: '取消', cb: () => {} }]); }
+function giveGift(idx) { if (!G.zyHome) { toast('五条悟不在家'); return; } if (idx < 0 || idx >= G.gifts.length) return; let item = G.gifts[idx]; G.gifts.splice(idx, 1); G.love = Math.min(100, G.love + item.l); let reactions = { daifuku_box:'五条悟接过礼盒，眉眼放松：“来得正好，拆开尝尝。”', scarf:'五条悟把围巾绕在脖子上：“天冷刚好能用，有心了。”', crystal:'五条悟拿起摆件对着光看了看：“造型有意思，摆桌面收藏。”', thermos:'五条悟倒了些热水进去：“用来装热牛奶刚刚好。”', picturebook:'五条悟翻了几页：“空闲的时候翻翻看。”', cat_plush:'五条悟捏了捏玩偶：“手感软软的，放沙发。”', honey:'五条悟拧开盖子闻了闻：“做甜品正好用上。”', perfume:'五条悟轻轻喷了一下：“味道清新，出门偶尔用。”', gloves:'五条悟试了试手套：“冬天出门不怕冻手。”', sweet_coupon:'五条悟眼睛一亮：“宝藏礼物，这下不愁点心了！”', silver:'五条悟把它挂在背包上：“挂在背包上当配饰。”', handwarmer:'五条悟握在手心：“怕冷神器，随身带着。”', succulent:'五条悟放在窗台：“摆在窗台打理。”', keychain:'五条悟换下旧挂件：“替换旧钥匙挂件。”', cashmere:'五条悟披在肩上：“空调房御寒好物。”' }; showReaction(reactions[item.id] || ('五条悟收下礼物，嘴角微微上扬：“谢啦。”')); showStatChange('送出礼物', {love: item.l}); updateUI(); save(); G.dailyLog.push('收到了一份礼物，很开心。'); }
+
+var recipes = [
+{ name: '🍓 草莓奶油蛋糕', needs: ['strawberry_raw','cream_raw','flour_raw','sugar_raw'], h: 38, m: 15, l: 4, desc: '五条悟的招牌甜点。松软蛋糕胚配上新鲜草莓。', react: '五条悟尝了一口，眉眼舒展：“这次的奶油打发得刚好。”' },
+{ name: '🍵 抹茶千层', needs: ['matcha_raw','cream_raw','milk_raw','flour_raw'], h: 35, m: 12, l: 3, desc: '薄饼叠加抹茶奶油，口感细腻。', react: '五条悟切下一小块放进嘴里：“抹茶的微苦和甜度平衡得刚好。”' },
+{ name: '🥛 焦糖布丁', needs: ['egg_raw','milk_raw','sugar_raw'], h: 22, m: 8, l: 2, desc: '滑嫩布丁配上焦糖脆壳。', react: '五条悟用勺子敲碎焦糖层：“喜欢这个脆脆的口感。”' },
+{ name: '🍫 巧克力熔岩', needs: ['chocolate_raw','butter_raw','egg_raw','flour_raw'], h: 32, m: 12, l: 3, desc: '切开流心的热巧克力蛋糕。', react: '五条悟用勺子舀出流心：“温热的最好吃了。”' },
+{ name: '🥭 芒果慕斯', needs: ['mango_raw','cream_raw','sugar_raw'], h: 28, m: 10, l: 2, desc: '清爽的芒果香味。', react: '五条悟挖了一勺：“夏天的味道。”' },
+{ name: '🍑 蜜桃乌龙冻', needs: ['peach_raw','flavored_tea','sugar_raw'], h: 20, m: 10, l: 2, desc: '茶香混着果香的清凉甜品。', react: '五条悟抿了一口：“好清爽，再来一份。”' },
+{ name: '🍙 和牛饭团', needs: ['wagyu_raw','rice_raw'], h: 40, m: 8, l: 2, desc: '煎香的和牛包裹在饭团里。', react: '五条悟咬了一口：“嗯，肉汁好足。”' },
+{ name: '🧀 芝士焗红薯', needs: ['cheese_raw','butter_raw'], h: 30, m: 8, l: 2, desc: '香甜红薯配上拉丝芝士。', react: '五条悟挖了一勺，芝士拉丝：“冬天就想吃这个。”' }
+];
+function renderDining() { let ings = G.inventory.filter(i => i.ing); let foods = G.inventory.filter(i => !i.ing); let html = '<p style="font-weight:600;margin-bottom:6px;font-size:14px;">🍽️ 餐厅</p><p style="font-size:11px;color:var(--text2);">🥩 冰箱里的食材</p><div class="shop-grid">'; ings.forEach((item) => { html += '<div class="shop-card"><div class="s-emoji">' + item.e + '</div><div class="s-name">' + item.n + '</div></div>'; }); if (ings.length === 0) html += '<p style="font-size:11px;color:var(--text2);">冰箱是空的</p>'; html += '</div><p style="font-size:11px;color:var(--text2);margin-top:6px;">🍽️ 可直接吃的食物</p><div class="shop-grid">'; foods.forEach((item, idx) => { let realIdx = G.inventory.indexOf(item); html += '<div class="inv-card" onclick="feedFromInv(' + realIdx + ')"><div class="iv-emoji">' + item.e + '</div><div>' + item.n + '</div><div>🍖+' + (item.h||0) + '</div></div>'; }); if (foods.length === 0) html += '<p style="font-size:11px;color:var(--text2);">没有可直接吃的食物</p>'; html += '</div>'; $('#contentMain').innerHTML = html; $('#choicesMain').innerHTML = '<div class="btn" onclick="showRecipeList()"><span>🍳 一起做饭</span><span style="font-size:10px;">消耗1行动力+8精力</span></div>'; }
+function feedFromInv(idx) { if (!G.zyHome) { toast('五条悟不在家'); return; } if (idx < 0 || idx >= G.inventory.length) return; let item = G.inventory[idx]; if (item.ing) { toast('这是食材'); return; } G.inventory.splice(idx, 1); G.hunger = Math.min(100, G.hunger + (item.h||0)); let sweetReaction = item.id.includes('cake')||item.id.includes('daifuku')||item.id.includes('pudding') ? '五条悟眉眼放松，小口享用：“幸福感拉满。”' : '五条悟慢慢品尝：“嗯，不错。”'; showReaction('五条悟吃了' + item.n + '，' + sweetReaction); showStatChange('进食', {hunger: item.h}); updateUI(); save(); renderDining(); G.dailyLog.push('吃了' + item.n + '，很好吃。'); }
+function showRecipeList() { if (!G.zyHome) { toast('五条悟不在家'); return; } let html = '<p style="font-weight:600;margin-bottom:6px;font-size:14px;">🍳 菜谱</p>'; recipes.forEach((r, idx) => { let canCook = r.needs.every(n => G.inventory.some(i => i.id === n)); html += '<div class="recipe-card' + (canCook ? ' cookable' : ' locked') + '" onclick="openRecipeDetail(' + idx + ')"><b>' + r.name + '</b> <span style="font-size:10px;color:var(--text2);">🍖+'+r.h+' 💭+'+r.m+' 💕+'+r.l+'</span>' + (canCook ? ' <span style="color:var(--accent);font-size:10px;">✓可烹饪</span>' : ' <span style="color:#999;font-size:10px;">食材不全</span>') + '</div>'; }); $('#contentMain').innerHTML = html; $('#choicesMain').innerHTML = '<div class="btn" onclick="renderDining()"><span>🔙 返回餐厅</span></div>'; }
+function openRecipeDetail(idx) { let r = recipes[idx]; let canCook = r.needs.every(n => G.inventory.some(i => i.id === n)); let h = '<p><b>' + r.name + '</b></p><p style="font-size:12px;">' + r.desc + '</p><p style="font-size:11px;">需要: ' + r.needs.map(n => { let f = shopCats.find(c=>c.cat==='🥩食材区').items.find(i=>i.id===n); return f?f.e:n; }).join(' ') + '</p><p style="font-size:11px;">🍖+'+r.h+' 💭+'+r.m+' 💕+'+r.l+'</p><p style="font-size:11px;color:var(--text2);">消耗: 1行动力 + 8精力</p>'; let btns = []; if (canCook) btns.push({ text: '🍳 烹饪', cb: () => { cookRecipe(idx); } }); else btns.push({ text: '食材不足', cb: () => {} }); btns.push({ text: '取消', cb: () => {} }); showModal(r.name, h, btns); }
+function cookRecipe(idx) { if (!spendAction()) return; let r = recipes[idx]; if (!r.needs.every(n => G.inventory.some(i => i.id === n))) { toast('食材不足'); return; } r.needs.forEach(n => { let i = G.inventory.findIndex(i => i.id === n); if (i >= 0) G.inventory.splice(i, 1); }); G.hunger = Math.min(100, G.hunger + r.h); G.mood = Math.min(100, G.mood + r.m); G.love = Math.min(100, G.love + r.l); G.energy = Math.max(0, G.energy - 8); toast('做了' + r.name); updateUI(); save(); showReaction(r.react); showStatChange('做饭', {hunger: r.h, mood: r.m, love: r.l, energy: -8}); renderDining(); if (checkGameOver()) return; G.dailyLog.push('和五条悟一起做了' + r.name + '，很好吃。'); }
+
+function renderBath() {
+$('#contentMain').innerHTML = '<div style="text-align:center;padding:10px;"><span style="font-size:45px;">🚿</span><br><span style="font-size:18px;">🛁 🧼 💧</span></div><p style="text-align:center;font-size:13px;">🛁 浴室里水汽氤氲，热水已经放好了。</p>';
+$('#choicesMain').innerHTML = '';
+[{ text: '🪥 洗漱 (+15整洁度, 消耗5精力)', action: () => { if (!G.zyHome) { toast('五条悟不在家'); return; } G.cleanliness = Math.min(100, G.cleanliness + 15); G.energy = Math.max(0, G.energy - 5); showReaction('五条悟站在洗手台前认真地刷牙洗脸，白发上沾了一点水珠。'); showStatChange('洗漱完毕', {cleanliness:15, energy:-5}); toast('洗漱完毕'); save(); updateUI(); if (checkGameOver()) return; G.dailyLog.push('洗漱了一下，清爽多了。'); } },
+{ text: '🚿 洗澡 (+25整洁度, 消耗8精力)', action: () => { if (!G.zyHome) { toast('五条悟不在家'); return; } G.cleanliness = Math.min(100, G.cleanliness + 25); G.energy = Math.max(0, G.energy - 8); showReaction('五条悟擦着头发出来，浑身带着沐浴露的清香，蓝眼睛显得格外清澈。“洗完了，舒服多了。”'); showStatChange('洗澡完毕', {cleanliness:25, energy:-8}); toast('五条悟洗完了澡'); save(); updateUI(); if (checkGameOver()) return; G.dailyLog.push('洗了澡，浑身清爽。'); } },
+{ text: '❤️ 一起洗澡 (+25整洁度, +2好感, 消耗1行动力+5精力)', action: () => { if (!G.zyHome) { toast('五条悟不在家'); return; } if (G.love < 65) { toast('好感度不足'); return; } if (!spendAction()) return; G.cleanliness = Math.min(100, G.cleanliness + 25); G.energy = Math.max(0, G.energy - 5); G.love = Math.min(100, G.love + 2); showReaction('浴室里雾气弥漫。五条悟有些不好意思地别过脸，耳尖泛红，但嘴角是上扬的。'); showStatChange('一起洗澡', {cleanliness:25, energy:-5, love:2}); toast('你们一起洗完了澡'); save(); updateUI(); if (checkGameOver()) return; G.dailyLog.push('和五条悟一起洗澡了......有点害羞但很开心。'); }}].forEach(c => { let btn = document.createElement('div'); btn.className = 'btn'; btn.innerHTML = '<span>' + c.text + '</span>'; btn.addEventListener('click', c.action); $('#choicesMain').appendChild(btn); });
+}
+
+function renderWardrobe() { let html = '<p style="font-weight:600;margin-bottom:6px;font-size:14px;">👔 衣帽间</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">'; let all = [{ id: 'default', e: '🧑‍🦳', n: '日常装' }]; let shopO = []; shopCats.forEach(cat => { if (cat.cat === '👔衣物区') cat.items.forEach(i => shopO.push({ id: i.o, e: i.e, n: i.n })); }); shopO.forEach(o => { if (G.ownedOutfits.indexOf(o.id) !== -1) all.push(o); }); all.forEach(o => { html += '<div class="inv-card" style="' + (G.outfit === o.id ? 'border:2px solid var(--accent);' : '') + '" onclick="changeOutfit(\'' + o.id + '\')"><div class="iv-emoji">' + o.e + '</div><div>' + o.n + '</div>' + (G.outfit === o.id ? '<div style="color:var(--accent);font-size:9px;">✓穿着</div>' : '') + '</div>'; }); html += '</div>'; $('#contentMain').innerHTML = html; }
+function changeOutfit(id) { if (!G.zyHome) { toast('五条悟不在家'); return; } if (G.ownedOutfits.indexOf(id) === -1) { toast('还没有这件衣服'); return; } G.outfit = id; updateUI(); renderWardrobe(); save(); let reactions = { pajama:'五条悟伸了个懒腰：“宽松舒服，宅家吃甜品最合适。”', shirt:'五条悟整理了一下衣领：“出门逛街穿这个清爽自在。”', coat:'五条悟裹紧外套：“降温防寒，不怕吹风。”', uniform:'五条悟对着镜子看了看：“复古穿搭，偶尔体验校园感。”', trench:'五条悟把手插进风衣口袋：“随性帅气，外出采购标配。”', floral:'五条悟转了转身：“轻便，春日散步穿搭。”', turtleneck:'五条悟摸了摸领口：“锁温，怕冷星人刚需。”', sweatsuit:'五条悟活动了一下：“慵懒随性，日常百搭。”', cardigan:'五条悟坐在沙发上：“氛围感满满，坐着喝茶很搭。”', puffer:'五条悟拍拍衣服：“寒冬出门全靠它保暖。”', formal:'五条悟站得笔直：“简约利落。”', robe:'五条悟系好腰带：“睡前放松专用穿搭。”', cargo:'五条悟检查口袋：“方便随性，逛集市首选。”', vest:'五条悟扯了扯袖口：“叠穿好看，冷热都适配。”', xmas:'五条悟眼睛一亮：“节日氛围感拉满！”' }; showReaction(reactions[id] || '五条悟换上了新衣服，在镜子前看了看。'); G.dailyLog.push('换上了新衣服，感觉不错。'); }
+
+var chatRound = 0;
+var conversationTrees = [
+{ id: 'sweets', zy: '家里的冰箱又被你的甜品占满了。', r: [
+{u:'甜食是人生刚需嘛，不然漫长闲暇怎么熬。',z:'五条悟眨了眨眼，理直气壮地笑。', next: {zy:'诶呀诶呀，不要说的那么恐怖啦，人家会害怕的。', r: [{u:'怕什么，我又不会没收。',z:'五条悟凑近了一点，蓝眼睛弯起来：“就知道你最好~”'},{u:'天天囤甜食，小心蛀牙。',z:'五条悟捂住嘴，装出惊恐表情：“哇，别说这么恐怖的话！”'},{u:'最多帮你分担一点。',z:'五条悟递过来一颗草莓大福：“来来来，一起吃才最香。”'}] }},
+{u:'那下次少囤一点。',z:'五条悟歪头想了想，然后摇头：“不行，这是人生信条。”', next: {zy:'你要不要也来一块？今天的草莓特别甜。', r: [{u:'那吃一块。',z:'五条悟开心地拆开包装：“这就对了嘛。”'},{u:'你自己吃吧。',z:'五条悟自己咬了一口，满足地眯起眼睛：“那我就不客气啦。”'},{u:'冰箱真的放不下了。',z:'五条悟打开冰箱看了看：“嗯……确实有点挤。那明天吃掉一些。”'}] }},
+{u:'你开心就好。',z:'五条悟扬起嘴角：“嘻嘻，就知道你最好了。”', next: {zy:'那要不要一起去逛逛甜品店？我知道新开了一家。', r: [{u:'好，走吧。',z:'五条悟立刻站起来，眼睛亮晶晶的：“说走就走！”'},{u:'今天有点累。',z:'五条悟点点头：“那在家休息，我买回来一起吃。”'},{u:'你怎么天天想着吃甜的。',z:'五条悟理直气壮：“因为生活需要甜度嘛。”'}] }}
+] },
+{ id: 'date', zy: '难得你空闲，我们出去约会吧。', r: [
+{u:'只要在你身边，怎么样都可以啦。',z:'五条悟托着下巴，笑得很温柔。', next: {zy:'油嘴滑舌。', r: [{u:'真心话哦。',z:'五条悟把手放在胸口：“我的心意天地可鉴~”'},{u:'那你想去哪？',z:'五条悟认真想了想：“只要是和你一起，哪里都好。”'},{u:'再夸就不像你了。',z:'五条悟笑出声：“那我收一点，留到下次再说。”'}] }},
+{u:'去哪里？',z:'五条悟从沙发上坐起来，摘下墨镜：“游乐场？或者公园？我都行。”', next: {zy:'你来选，我负责陪你。', r: [{u:'那去公园吧。',z:'五条悟点头：“好，正好可以带点吃的野餐。”'},{u:'去商场逛逛。',z:'五条悟站起来：“那走，顺便看看有没有新出的甜品。”'},{u:'在家待着就好。',z:'五条悟又躺回去：“也行，在家陪你也很开心。”'}] }},
+{u:'你又想出门买甜品了吧。',z:'五条悟睁大眼睛：“被发现了？不过重点不是甜品，是和你一起逛啦。”', next: {zy:'那到底去不去？', r: [{u:'去去去。',z:'五条悟立刻起身：“好嘞，等我换件衣服。”'},{u:'下次吧。',z:'五条悟耸耸肩：“好吧，那在家也一样。”'},{u:'你请客就去。',z:'五条悟掏出钱包：“没问题，今天随便挑。”'}] }}
+] },
+{ id: 'glasses', zy: '墨镜又不知道随手丢在哪了。', r: [
+{u:'仔细看看梳妆台。',z:'五条悟走过去拿起墨镜戴上，转过身比了个耶：“不愧是你！”', next: {zy:'你是怎么想到放在那里的？', r: [{u:'因为之前帮你收拾过。',z:'五条悟凑过来：“贤惠，爱了爱了。”'},{u:'你那乱放的习惯该改了。',z:'五条悟挠挠头：“尽量尽量，下次一定记住。”'},{u:'找到了就好。',z:'五条悟点点头：“下次一定放好……大概吧。”'}] }},
+{u:'在沙发缝里找找？',z:'五条悟翻了翻沙发，果然找到了：“谢啦。”', next: {zy:'没有你我可怎么办。', r: [{u:'所以别乱放嘛。',z:'五条悟乖乖点头：“好，听你的。”'},{u:'知道就好。',z:'五条悟笑着推了推墨镜：“以后就靠你提醒了。”'},{u:'给你买个眼镜盒吧。',z:'五条悟立刻摇头：“不要，那个太麻烦了。”'}] }},
+{u:'你说过多少次了。',z:'五条悟吐了吐舌头：“嘿嘿，下次一定注意。”', next: {zy:'其实放在桌上就行。', r: [{u:'那你记住。',z:'五条悟郑重其事地点头：“记住了记住了。”'},{u:'不信。',z:'五条悟装作受伤的样子：“好伤心，竟然不信我。”'},{u:'算了，习惯了。',z:'五条悟笑起来：“那就习惯我吧~”'}] }}
+] }
+];
+
+function renderBedroom() {
+if (!G.zyHome) { $('#contentMain').innerHTML = '<p>五条悟不在家，卧室空荡荡的。</p>'; return; }
+let lamp = G.lightOn ? '💡' : '🌑';
+$('#sceneArea').style.background = G.lightOn ? 'linear-gradient(180deg,#1a1a2e,#0d0d1a)' : 'linear-gradient(180deg,#050510,#020208)';
+$('#sceneEmoji').textContent = '🛏️'; $('#sceneLabel').textContent = '卧室';
+let poses = ['靠在床头翻漫画','窝在被子里玩手机','躺着发呆','侧躺着看向你这边'];
+let pose = poses[Math.floor(Math.random()*poses.length)];
+let html = '<div style="text-align:center;padding:4px;"><span style="font-size:40px;">🛏️</span> <span style="font-size:22px;">' + lamp + '</span></div>';
+html += '<p style="text-align:center;font-size:11px;">' + lamp + ' 台灯' + (G.lightOn?'亮着':'已熄灭') + ' | 🌙 窗外夜色静谧</p>';
+if (G.lightOn) { html += '<p>五条悟' + pose + '。看到你进来，他往旁边挪了挪，给你腾出位置。</p>'; } else { html += '<p>房间很暗，只有窗外的月光。五条悟已经躺下了，呼吸均匀。</p>'; }
+$('#contentMain').innerHTML = html;
+chatRound = 0;
+$('#choicesMain').innerHTML = '';
+if (G.lightOn) {
+[{ text: '💬 聊聊天', action: () => startChat() },
+{ text: '🤗 亲密互动', action: () => showIntimacy() },
+{ text: '🌙 熄灯睡觉', action: () => { let warnings = []; if (G.hunger - 25 <= 0) warnings.push('⚠️ 饱腹度将在过夜后降为0！'); if (G.cleanliness - 18 <= 0) warnings.push('⚠️ 整洁度将在过夜后降为0！'); if (warnings.length > 0) { showModal('⚠️ 警告', warnings.join('\n') + '\n\n确定要睡觉吗？', [{ text: '确定睡觉', cb: () => { G.lightOn = false; updateUI(); showLogAndEndDay(); } }, { text: '再等等', cb: () => {} }]); } else { showModal('确认', '要熄灯睡觉吗？\n今天就要结束了。', [{ text: '是的，晚安', cb: () => { G.lightOn = false; updateUI(); showLogAndEndDay(); } }, { text: '再待一会儿', cb: () => {} }]); } }}].forEach(c => { let btn = document.createElement('div'); btn.className = 'btn'; btn.innerHTML = '<span>' + c.text + '</span>'; btn.addEventListener('click', c.action); $('#choicesMain').appendChild(btn); });
+} else { let btn = document.createElement('div'); btn.className = 'btn'; btn.innerHTML = '<span>🌙 结束今天</span>'; btn.addEventListener('click', () => { showLogAndEndDay(); }); $('#choicesMain').appendChild(btn); }
+}
+var currentConvo = null;
+function startChat() { var used = G.flags['usedConvoIds'] || []; var available = []; for (var i = 0; i < conversationTrees.length; i++) { if (used.indexOf(conversationTrees[i].id) === -1) available.push(i); } if (available.length === 0) { used = []; G.flags['usedConvoIds'] = []; available = []; for (var j = 0; j < conversationTrees.length; j++) available.push(j); } var pickIdx = available[Math.floor(Math.random() * available.length)]; var tree = conversationTrees[pickIdx]; used.push(tree.id); G.flags['usedConvoIds'] = used; save(); currentConvo = tree; showConvoStep(tree); }
+function showConvoStep(tree) { $('#contentMain').innerHTML = '<p>五条悟看着你，轻声说："<b>' + tree.zy + '</b>"</p>'; $('#choicesMain').innerHTML = ''; for (var k = 0; k < tree.r.length; k++) { (function(reply, idx) { var btn = document.createElement('div'); btn.className = 'btn'; btn.innerHTML = '<span>' + reply.u + '</span>'; btn.addEventListener('click', function() { $('#contentMain').innerHTML = '<p>"' + reply.u + '"</p><p>' + reply.z + '</p>'; if (reply.next && chatRound < 2) { chatRound++; setTimeout(function() { showConvoStep(reply.next); }, 1500); } else { setTimeout(function() { $('#contentMain').innerHTML = '<p>你们又聊了一会儿，夜渐渐深了。五条悟打了个哈欠，眼角渗出一点泪花。</p>'; $('#choicesMain').innerHTML = '<div class="btn" onclick="renderBedroom()"><span>🛏️ 返回卧室</span></div>'; }, 1500); } }); $('#choicesMain').appendChild(btn); })(tree.r[k], k); } var backBtn = document.createElement('div'); backBtn.className = 'btn'; backBtn.innerHTML = '<span>🔙 返回</span>'; backBtn.addEventListener('click', function() { renderBedroom(); }); $('#choicesMain').appendChild(backBtn); }
+function showIntimacy() { $('#choicesMain').innerHTML = ''; [{ text: '🫂 抱一抱', r: '你伸手把五条悟揽进怀里。他把脸埋在你的肩窝里，白发蹭着你的脖子。“好暖。”', e: () => { G.love = Math.min(100, G.love + 1); G.mood = Math.min(100, G.mood + 6); showStatChange('抱一抱', {love:1, mood:6}); G.dailyLog.push('五条悟抱了我，好温暖。'); } }, { text: '😘 亲亲脸颊', r: '你凑过去在他脸颊上亲了一下。他的耳尖迅速变红了。“......干嘛突然偷袭。”', e: () => { G.love = Math.min(100, G.love + 2); G.mood = Math.min(100, G.mood + 8); showStatChange('亲亲脸颊', {love:2, mood:8}); G.dailyLog.push('五条悟亲了我，有点害羞。'); } }, { text: '💪 按摩肩膀', r: '你轻轻地帮他揉捏着肩膀。五条悟舒服地叹了口气，整个人的重量都靠了过来。', e: () => { G.energy = Math.min(100, G.energy + 3); G.mood = Math.min(100, G.mood + 6); showStatChange('按摩肩膀', {energy:3, mood:6}); G.dailyLog.push('五条悟帮我按摩了肩膀，好舒服。'); } }, { text: '💨 帮忙吹头发', r: '你拿来吹风机，温热的风穿过他柔软的白发。五条悟闭着眼睛，整个人都放松了下来。', e: () => { G.love = Math.min(100, G.love + 1); G.energy = Math.min(100, G.energy + 2); showStatChange('吹头发', {love:1, energy:2}); G.dailyLog.push('五条悟帮我吹了头发，暖暖的。'); } }].forEach(c => { let btn = document.createElement('div'); btn.className = 'btn'; btn.innerHTML = '<span>' + c.text + '</span>'; btn.addEventListener('click', () => { c.e(); $('#contentMain').innerHTML = '<p>' + c.r + '</p>'; $('#choicesMain').innerHTML = '<div class="btn" onclick="renderBedroom()"><span>🛏️ 返回卧室</span></div>'; }); $('#choicesMain').appendChild(btn); }); }
+
+function renderCity() { let html = '<p style="font-weight:600;margin-bottom:6px;font-size:14px;">🗺️ 选择约会地点</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">'; [{id:'park',n:'🌳 城市公园',c:0},{id:'mall',n:'🏬 大型商场',c:30},{id:'cinema',n:'🎬 电影院',c:50},{id:'amusement',n:'🎢 游乐场',c:80}].forEach(p => { html += '<div class="btn" onclick="goDate(\'' + p.id + '\')"><span>' + p.n + '</span><span style="font-size:10px;">' + (p.c>0?'🪙'+p.c:'免费') + ' (消耗1行动力+10精力)</span></div>'; }); html += '</div>'; $('#contentMain').innerHTML = html; }
+function goDate(id) { if (!spendAction()) return; let places = { park: { c:0,l:3,e:'🌳',bg:'linear-gradient(180deg,#e0f0e0,#c8e0c8)',n:'城市公园',d:'暮春午后微风和煦，草坪落着细碎花瓣。五条悟摘掉墨镜盘腿坐在草地上，腿边摆满各色甜品。你靠着他看书，偶尔被他递来的草莓投喂，路过的野猫凑过来蹭脚踝，两人慢悠悠闲聊消磨整段午后。' }, mall: { c:30,l:4,e:'🏬',bg:'linear-gradient(180deg,#f0f0f5,#e0e0e8)',n:'大型商场',d:'闲逛在百货楼层，五条悟兴致满满拉着你穿梭服装店，时不时拿起可爱配饰往你头上比划。逛累了便直奔负一楼甜品铺，打包一堆点心，边走边分食。' }, cinema: { c:50,l:5,e:'🎬',bg:'linear-gradient(180deg,#1a1a2e,#0d0d1a)',n:'电影院',d:'选了温情日常片，放映厅光线昏暗。你下意识裹紧外套畏寒，五条悟悄悄把外套披在你肩头。观影中途偷偷凑在耳边小声吐槽剧情，惹得你憋笑。' }, amusement: { c:80,l:6,e:'🎢',bg:'linear-gradient(180deg,#fff0f5,#ffe0e8)',n:'游乐场',d:'白日玩遍过山车、旋转木马，傍晚坐在摩天轮座舱里升到高空，落地时天边染了晚霞。五条悟从口袋摸出藏了一天的糖果，借着落日余晖和你并肩散步。' } }; let p = places[id]; if (!p || G.money < p.c) { toast('金币不足'); return; } G.money -= p.c; G.love = Math.min(100, G.love + p.l); G.mood = Math.min(100, G.mood + 12); G.energy = Math.max(0, G.energy - 10); $('#sceneArea').style.background = p.bg; $('#sceneEmoji').textContent = p.e; $('#sceneLabel').textContent = p.n; $('#contentMain').innerHTML = '<p>' + p.d + '</p><div class="btn" style="margin-top:10px;" onclick="endDate()"><span>🏠 结束约会，回家</span></div>'; showStatChange('约会', {love:p.l, mood:12, energy:-10, money:-p.c}); updateUI(); save(); if (checkGameOver()) return; G.dailyLog.push('和五条悟去' + p.n + '约会了，很开心。'); }
+function endDate() { G.phase = 'evening'; switchScreen('main'); addContent('约会结束了。你们手牵手回到家，夕阳把两个人的影子拉得很长。'); showPhase(); }
+
+function generateLog() { let log = ''; let isWeekend = G.weekDay >= 5; if (!isWeekend) { log += '今天出门逛了逛。'; if (G.energy < 30) log += '有点累，但买到了好吃的甜品。'; else log += '逛了几个景点，还买了伴手礼。'; } else { log += '今天在家休息。'; } if (G.dailyLog.length > 0) { for (let entry of G.dailyLog) { log += entry + ' '; } } if (G.hunger < 30) log += '肚子有点饿了... '; if (G.cleanliness < 30) log += '想泡个澡... '; if (G.mood < 30) log += '今天心情不太好。 '; if (G.mood > 80) log += '今天特别开心！ '; if (G.love > 80) log += '越来越喜欢你了。 '; if (G.eventTriggeredToday && G.usedEvents && G.usedEvents.length > 0) { log += '今天发生了一件特别的事。 '; } if (log === '') log += '今天是平静的一天。'; return log.trim(); }
+function showLogAndEndDay() { let logText = generateLog(); showModal('📖 五条悟的日志', '✏️ ' + logText, [{ text: '知道了', cb: () => { G.dailyLog = []; endDayAfterLog(); } }]); }
+function endDayAfterLog() { G.hunger = Math.max(0, G.hunger - 25); G.energy = Math.min(100, G.energy + 30); G.cleanliness = Math.max(0, G.cleanliness - 18); if (G.hunger <= 0) G.hunger = 0; if (G.cleanliness <= 0) G.cleanliness = 0; if (G.hunger < 20) G.mood = Math.max(0, G.mood - 8); if (G.energy < 15) G.mood = Math.max(0, G.mood - 10); save(); G.day++; G.actions = 3; G.weekDay = (G.weekDay + 1) % 7; G.phase = 'morning'; G.lightOn = true; G.zyHome = true; G.zyAtSchool = false; G.eventTriggeredToday = false; if (G.day > 30) { checkEnding(); return; } $('#contentMain').innerHTML = ''; addContent('🌙 新的一天开始了。'); updateUI(); showPhase(); if (checkGameOver()) return; }
+function checkEnding() { let avg = (G.love + G.mood) / 2; let e = avg >= 70 ? ['🏠 甜度满格', '三十天过去了。\n\n五条悟已经完全习惯了有你在身边的每一天，冰箱里的甜品也越囤越多。'] : avg >= 45 ? ['📖 日常相伴', '三十天过去了。\n\n日子似乎和第一天没什么不同，但也足够温暖。'] : avg >= 25 ? ['🌧️ 渐行渐远', '三十天过去了。\n\n五条悟吃甜品的次数好像变少了。'] : ['❄️ 空荡荡', '三十天过去了。\n\n家里安静得有些过分。']; showModal(e[0], e[1], [{ text: '重新开始', cb: () => { localStorage.removeItem(SK); location.reload(); } }]); }
+
+var allEvents = [
+{ title: '🍬 口袋里的惊喜', body: '你帮五条悟收拾外套时，从口袋里翻出一堆遗忘很久的糖果和过期甜品券。他凑过来看了一眼，眨了眨眼：“诶，这些什么时候放的来着？”', choices: [{ text: '笑着把糖果还给他', changes: {love:5, mood:8, energy:0}, react: '五条悟接过糖果，拆开一颗放进嘴里：“嗯，还能吃。”他眯起眼睛笑了。' },{ text: '没收，说吃太多糖不好', changes: {love:2, mood:-2, energy:0}, react: '五条悟可怜巴巴地看着你：“就留一颗嘛……”最后你还是还给了他一颗。' },{ text: '和他一起看哪些过期了', changes: {love:6, mood:6, energy:-1}, react: '五条悟坐在地毯上和你一起翻，一边翻一边回忆：“这个是上次去那家店买的……”' }] },
+{ title: '📝 便利贴预告', body: '出门时发现门上贴着张便利贴，是附近甜品店留的新品预告：“本周末限定——草莓雪山慕斯，欢迎尝鲜。”五条悟眼睛立刻亮了。', choices: [{ text: '说周末带他去尝尝', changes: {love:8, mood:10, energy:0}, react: '五条悟开心地挽住你的胳膊：“说好了哦，不许反悔！”' },{ text: '说现在就去看看', changes: {love:5, mood:8, energy:-2}, react: '五条悟立刻拉着你往甜品店方向走：“那还等什么，走吧走吧！”' },{ text: '说等正式上了再去', changes: {love:3, mood:2, energy:0}, react: '五条悟点点头，但还是又多看了那张便利贴几眼。' }] },
+{ title: '☔ 躲雨甜品店', body: '逛街时突然下起大雨，你们就近躲进街边的甜品店。五条悟点了两份热甜品，坐在窗边看着雨水顺着玻璃流下来。', choices: [{ text: '和他一起慢慢吃', changes: {love:6, mood:12, energy:-1}, react: '五条悟用勺子挖了一口递到你面前：“尝尝，这个不会太甜。”' },{ text: '抱怨天气不好', changes: {love:1, mood:-2, energy:0}, react: '五条悟伸手揉了揉你的头发：“偶尔这样也不错嘛，你看，甜品很好吃。”' },{ text: '说在这待到雨停', changes: {love:4, mood:8, energy:0}, react: '五条悟点点头，又叫了一份：“那再点个这个，反正有时间。”' }] }
+];
+
+function triggerRandomEvent() { if (G.eventTriggeredToday) return; let available = []; for (let i = 0; i < allEvents.length; i++) { if (!G.usedEvents || G.usedEvents.indexOf(i) === -1) available.push(i); } if (available.length === 0) { G.usedEvents = []; for (let j = 0; j < allEvents.length; j++) available.push(j); } let pickIdx = available[Math.floor(Math.random() * available.length)]; if (!G.usedEvents) G.usedEvents = []; G.usedEvents.push(pickIdx); G.eventTriggeredToday = true; save(); let evt = allEvents[pickIdx]; let btns = evt.choices.map(c => ({ text: c.text, cb: () => { if (c.changes) { if (c.changes.love) G.love = Math.max(0, Math.min(100, G.love + c.changes.love)); if (c.changes.mood) G.mood = Math.max(0, Math.min(100, G.mood + c.changes.mood)); if (c.changes.energy) G.energy = Math.max(0, Math.min(100, G.energy + c.changes.energy)); if (c.changes.hunger) G.hunger = Math.max(0, Math.min(100, G.hunger + c.changes.hunger)); if (c.changes.cleanliness) G.cleanliness = Math.max(0, Math.min(100, G.cleanliness + c.changes.cleanliness)); if (c.changes.money) G.money = Math.max(0, G.money + c.changes.money); } updateUI(); save(); showReaction(c.react); showStatChange(evt.title, c.changes || {}); G.dailyLog.push('今天发生了一件事：' + evt.title + '。'); if (checkGameOver()) return; } })); showModal('⚡ ' + evt.title, evt.body, btns); }
+
+function showPhase() {
+updateUI(); $('#sceneArea').style.background = 'linear-gradient(180deg,#f5efe5,#ebe0d0)'; $('#sceneEmoji').textContent = '🏠'; $('#sceneLabel').textContent = '家里·客厅';
+let isWeekend = G.weekDay >= 5;
+if (G.phase === 'morning') { $('#contentMain').innerHTML = ''; if (!isWeekend) addContent('清晨。五条悟正在翻冰箱，看有什么甜品可以当早餐。吃完早餐他打算出门逛逛。'); else addContent('周末的早晨。阳光透过窗帘洒进来，五条悟翻了个身。今天他在家。'); addContent('<b>☀️ 上午</b>'); let choices = []; if (isWeekend) { choices.push({ text: '🚪 出门约会', action: () => switchScreen('city') }); choices.push({ text: '🏠 在家休息', action: () => { G.phase = 'afternoon'; showPhase(); } }); } else { choices.push({ text: '🎒 让五条悟出门逛逛', action: () => { G.zyAtSchool = true; G.zyHome = false; G.energy = Math.max(0, G.energy - 10); G.phase = 'afternoon'; addContent('五条悟戴上墨镜出门了。“我走了，回来给你带伴手礼。”'); showPhase(); if (checkGameOver()) return; } }); choices.push({ text: '💼 去上班 (+120💰, 消耗1行动力)', action: () => { if (!spendAction()) return; G.money += 120; G.phase = 'afternoon'; addContent('你忙碌了一上午。终于到了午休时间。'); showStatChange('上班', {money:120}); showPhase(); } }); choices.push({ text: '🏠 请假在家', action: () => { G.phase = 'afternoon'; showPhase(); } }); } choices.push({ text: '🎒 查看物品栏', action: () => { $('#contentMain').innerHTML = renderInventorySection(); setChoices([{ text: '🔙 返回', action: () => showPhase() }]); } }); $('#contentMain').innerHTML += renderInventorySection(); setChoices(choices); }
+else if (G.phase === 'afternoon') { let zyHome = isWeekend || (!G.zyAtSchool && Math.random() < 0.6); if (!isWeekend && G.zyAtSchool) zyHome = false; if (isWeekend) zyHome = true; G.zyHome = zyHome; $('#contentMain').innerHTML = ''; if (G.zyHome) addContent('下午。五条悟已经从外面回来了，手里提着一袋甜品。'); else addContent('下午。五条悟还在外面，傍晚才能回来。'); addContent('<b>🌤️ 下午</b>'); let c = []; if (!G.zyHome) c.push({ text: '🏠 等五条悟回家', action: () => { G.zyHome = true; G.zyAtSchool = false; G.phase = 'evening'; addContent('五条悟推开门走了进来。“我回来了，给你带了伴手礼。”'); showPhase(); } }); $('#contentMain').innerHTML += renderInventorySection(); setChoices(c); }
+else if (G.phase === 'evening') { G.zyHome = true; G.zyAtSchool = false; $('#contentMain').innerHTML = ''; addContent('傍晚。五条悟系上围裙，开始在厨房里准备甜品。'); addContent('<b>🌅 傍晚</b>'); setChoices([{ text: '🛋️ 陪他窝在沙发上看电视', action: () => { G.love = Math.min(100, G.love + 1); G.energy = Math.min(100, G.energy + 3); addContent('你们窝在沙发上。五条悟把头搭在你肩上。'); showReaction('五条悟靠在你身边，轻声说：“这个节目还挺好看的。”'); G.phase = 'night'; showPhase(); } }]); $('#contentMain').innerHTML += renderInventorySection(); }
+else if (G.phase === 'night') { G.zyHome = true; $('#contentMain').innerHTML = ''; addContent('🌙 夜深了。五条悟应该在卧室里。'); setChoices([{ text: '🛏️ 去卧室', action: () => switchScreen('bedroom') }]); $('#contentMain').innerHTML += renderInventorySection(); }
+if (G.zyHome && !G.eventTriggeredToday && G.phase !== 'morning' && Math.random() < 0.5) { triggerRandomEvent(); }
+}
+
+if (!load()) { addContent('<b>📅 第1天 · 周一</b>'); addContent('五条悟靠在沙发上，手里拿着一盒草莓大福。'); addContent('他推了推墨镜，朝你笑了笑：“今天有什么好吃的吗？”'); }
+G.dailyLog = [];
+if (!G.lightOn && G.phase === 'night') { G.lightOn = true; }
+updateUI(); showPhase();
+showRules();
+</script>
+</body>
+</html>
